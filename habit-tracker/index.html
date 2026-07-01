@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Streaks — Habit Tracker</title>
+<meta name="theme-color" content="#6366f1" />
+<meta name="description" content="A fast, private, offline habit tracker." />
+<link rel="manifest" href="manifest.json" />
+<link rel="icon" href="icons/icon-192.png" />
+<link rel="apple-touch-icon" href="icons/icon-192.png" />
+<link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="app">
+    <header class="topbar">
+      <div class="title">Habits</div>
+      <div class="today-summary" id="todaySummary">0/0 today</div>
+    </header>
+
+    <section class="habit-list-wrap">
+      <ul class="habit-list" id="habitList"></ul>
+      <div class="empty-state" id="emptyState" hidden>
+        <p>No habits yet.</p>
+        <p class="empty-sub">Tap + to start your first streak.</p>
+      </div>
+    </section>
+
+    <button class="fab" id="addBtn" aria-label="Add habit">+</button>
+  </div>
+
+  <div class="sheet-backdrop" id="sheetBackdrop" hidden>
+    <form class="sheet" id="addForm">
+      <div class="sheet-handle"></div>
+      <h2>Add habit</h2>
+
+      <label class="field">
+        <span>Name</span>
+        <input type="text" id="nameInput" placeholder="e.g. Drink water" maxlength="40" required />
+      </label>
+
+      <div class="field">
+        <span>Icon</span>
+        <div class="emoji-grid" id="emojiGrid"></div>
+      </div>
+
+      <div class="sheet-actions">
+        <button type="button" class="btn btn-secondary" id="cancelBtn">Cancel</button>
+        <button type="submit" class="btn btn-primary">Save</button>
+      </div>
+    </form>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
