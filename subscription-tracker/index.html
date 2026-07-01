@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Renewals — Subscriptions & Vault</title>
+<meta name="theme-color" content="#2563eb" />
+<meta name="description" content="Track subscriptions and their renewal dates, with encrypted login storage." />
+<link rel="manifest" href="manifest.json" />
+<link rel="icon" href="icons/icon-192.png" />
+<link rel="apple-touch-icon" href="icons/icon-192.png" />
+<link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="app">
+    <header class="topbar">
+      <div class="title">Renewals</div>
+      <div class="header-right">
+        <div class="cost-summary" id="costSummary">$0.00/mo</div>
+        <button class="icon-btn" id="lockBtn" aria-label="Lock vault" title="Lock vault">🔓</button>
+      </div>
+    </header>
+
+    <section class="sub-list-wrap">
+      <ul class="sub-list" id="subList"></ul>
+      <div class="empty-state" id="emptyState" hidden>
+        <p>No subscriptions yet.</p>
+        <p class="empty-sub">Tap + to add one, with an optional saved login.</p>
+      </div>
+    </section>
+
+    <button class="fab" id="addBtn" aria-label="Add subscription">+</button>
+  </div>
+
+  <div class="sheet-backdrop" id="sheetBackdrop" hidden>
+    <form class="sheet" id="addForm">
+      <div class="sheet-handle"></div>
+      <h2>Add subscription</h2>
+
+      <label class="field">
+        <span>Name</span>
+        <input type="text" id="nameInput" placeholder="e.g. Netflix" maxlength="40" required />
+      </label>
+
+      <div class="field-row">
+        <label class="field">
+          <span>Cost</span>
+          <input type="number" id="costInput" inputmode="decimal" step="0.01" min="0" placeholder="0.00" required />
+        </label>
+
+        <label class="field">
+          <span>Billing cycle</span>
+          <select id="cycleInput">
+            <option value="monthly">Monthly</option>
+            <option value="yearly">Yearly</option>
+            <option value="weekly">Weekly</option>
+          </select>
+        </label>
+      </div>
+
+      <label class="field">
+        <span>Next renewal date</span>
+        <input type="date" id="renewalInput" required />
+      </label>
+
+      <label class="field">
+        <span>Website (optional)</span>
+        <input type="url" id="urlInput" placeholder="https://example.com" />
+      </label>
+
+      <div class="vault-note">🔒 Username, password, and notes below are encrypted with your master password before they're saved.</div>
+
+      <label class="field">
+        <span>Username / email (optional)</span>
+        <input type="text" id="usernameInput" placeholder="you@example.com" autocomplete="off" />
+      </label>
+
+      <label class="field">
+        <span>Password (optional)</span>
+        <div class="password-row">
+          <input type="password" id="passwordInput" placeholder="••••••••" autocomplete="off" />
+          <button type="button" class="show-toggle" id="togglePasswordInput" aria-label="Show password">👁</button>
+        </div>
+      </label>
+
+      <label class="field">
+        <span>Notes (optional)</span>
+        <input type="text" id="notesInput" placeholder="e.g. security question answer" maxlength="200" />
+      </label>
+
+      <div class="sheet-actions">
+        <button type="button" class="btn btn-secondary" id="cancelBtn">Cancel</button>
+        <button type="submit" class="btn btn-primary">Save</button>
+      </div>
+    </form>
+  </div>
+
+  <div class="sheet-backdrop" id="vaultBackdrop" hidden>
+    <form class="sheet" id="vaultForm">
+      <div class="sheet-handle"></div>
+      <h2 id="vaultTitle">Unlock vault</h2>
+      <p class="vault-desc" id="vaultDesc"></p>
+
+      <label class="field">
+        <span>Master password</span>
+        <input type="password" id="vaultPasswordInput" autocomplete="off" required />
+      </label>
+
+      <label class="field" id="vaultConfirmField" hidden>
+        <span>Confirm master password</span>
+        <input type="password" id="vaultConfirmInput" autocomplete="off" />
+      </label>
+
+      <p class="vault-error" id="vaultError" hidden></p>
+
+      <div class="sheet-actions">
+        <button type="button" class="btn btn-secondary" id="vaultCancelBtn">Cancel</button>
+        <button type="submit" class="btn btn-primary" id="vaultSubmitBtn">Unlock</button>
+      </div>
+    </form>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
