@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Spendy — Expense Tracker</title>
+<meta name="theme-color" content="#10b981" />
+<meta name="description" content="A fast, private, offline expense tracker." />
+<link rel="manifest" href="manifest.json" />
+<link rel="icon" href="icons/icon-192.png" />
+<link rel="apple-touch-icon" href="icons/icon-192.png" />
+<link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="app">
+    <header class="topbar">
+      <button class="icon-btn" id="prevMonth" aria-label="Previous month">‹</button>
+      <div class="month-label" id="monthLabel">July 2026</div>
+      <button class="icon-btn" id="nextMonth" aria-label="Next month">›</button>
+    </header>
+
+    <section class="total-card">
+      <div class="total-label">Total spent</div>
+      <div class="total-amount" id="totalAmount">$0.00</div>
+    </section>
+
+    <section class="breakdown" id="breakdown" aria-label="Spending by category"></section>
+
+    <section class="tx-list-wrap">
+      <div class="tx-list-header">Transactions</div>
+      <ul class="tx-list" id="txList"></ul>
+      <div class="empty-state" id="emptyState" hidden>
+        <p>No expenses yet this month.</p>
+        <p class="empty-sub">Tap + to add your first one.</p>
+      </div>
+    </section>
+
+    <button class="fab" id="addBtn" aria-label="Add expense">+</button>
+  </div>
+
+  <div class="sheet-backdrop" id="sheetBackdrop" hidden>
+    <form class="sheet" id="addForm">
+      <div class="sheet-handle"></div>
+      <h2>Add expense</h2>
+
+      <label class="field">
+        <span>Amount</span>
+        <input type="number" id="amountInput" inputmode="decimal" step="0.01" min="0" placeholder="0.00" required />
+      </label>
+
+      <label class="field">
+        <span>Category</span>
+        <select id="categoryInput" required></select>
+      </label>
+
+      <label class="field">
+        <span>Note (optional)</span>
+        <input type="text" id="noteInput" placeholder="e.g. groceries" maxlength="60" />
+      </label>
+
+      <label class="field">
+        <span>Date</span>
+        <input type="date" id="dateInput" required />
+      </label>
+
+      <div class="sheet-actions">
+        <button type="button" class="btn btn-secondary" id="cancelBtn">Cancel</button>
+        <button type="submit" class="btn btn-primary">Save</button>
+      </div>
+    </form>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
