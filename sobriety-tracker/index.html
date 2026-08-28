@@ -108,6 +108,11 @@
           <ul class="contact-list" id="toolkitContacts"></ul>
           <ul class="contact-list" id="toolkitHotlines"></ul>
         </div>
+
+        <div class="card">
+          <h2>Join a meeting</h2>
+          <ul class="contact-list" id="toolkitMeetings"></ul>
+        </div>
       </section>
 
       <!-- Support -->
@@ -123,6 +128,22 @@
           <ul class="contact-list" id="contactList"></ul>
           <p class="empty-sub" id="contactEmpty" hidden>No contacts saved yet.</p>
           <button type="button" class="btn btn-secondary" id="addContactBtn">+ Add a contact</button>
+        </div>
+
+        <div class="card">
+          <h2>Meetings</h2>
+          <p class="muted">Recurring meetings you want quick access to.</p>
+          <ul class="contact-list" id="meetingList"></ul>
+          <p class="empty-sub" id="meetingEmpty" hidden>No meetings saved yet.</p>
+          <button type="button" class="btn btn-secondary" id="addMeetingBtn">+ Add a meeting</button>
+        </div>
+
+        <div class="card">
+          <h2>Meeting log</h2>
+          <p class="muted">Track when you go and how long you stay.</p>
+          <ul class="checkin-history" id="meetingLogList"></ul>
+          <p class="empty-sub" id="meetingLogEmpty" hidden>No meetings logged yet.</p>
+          <button type="button" class="btn btn-secondary" id="logMeetingBtn">+ Log a meeting</button>
         </div>
 
         <div class="card">
@@ -156,6 +177,14 @@
           <div class="card stat-tile">
             <div class="stat-value" id="statAvgCraving">–</div>
             <div class="stat-label">Avg craving (14d)</div>
+          </div>
+          <div class="card stat-tile">
+            <div class="stat-value" id="statMeetings30">0</div>
+            <div class="stat-label">Meetings (30d)</div>
+          </div>
+          <div class="card stat-tile">
+            <div class="stat-value" id="statMeetingHours30">0</div>
+            <div class="stat-label">Meeting hours (30d)</div>
           </div>
         </div>
 

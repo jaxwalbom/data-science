@@ -48,6 +48,16 @@ const DISTRACTIONS = [
   "Look at old photos of people who matter to you.",
 ];
 
+const MEETING_SEED = [
+  {
+    id: "seed-womens-247",
+    name: "Women's 24/7 Meeting",
+    schedule: "24/7 — always available",
+    url: "https://us02web.zoom.us/j/92894148568",
+    passcode: "Billw",
+  },
+];
+
 const DEFAULT_DATA = () => ({
   startDate: null,
   pastRuns: [],
@@ -55,7 +65,22 @@ const DEFAULT_DATA = () => ({
   celebrated: [],
   checkins: {},
   contacts: [],
+  meetings: MEETING_SEED.map((m) => ({ ...m })),
+  meetingLogs: [],
 });
+
+function ensureMeetingsSeeded() {
+  let changed = false;
+  if (!Array.isArray(data.meetings)) {
+    data.meetings = MEETING_SEED.map((m) => ({ ...m }));
+    changed = true;
+  }
+  if (!Array.isArray(data.meetingLogs)) {
+    data.meetingLogs = [];
+    changed = true;
+  }
+  if (changed) save();
+}
 
 let meta = loadMeta();
 let data = DEFAULT_DATA();
@@ -514,6 +539,159 @@ function openAddContactSheet() {
   );
 }
 
+function meetingRowHtml(m, { deletable }) {
+  return `<li class="contact-item">
+    <div class="contact-info">
+      <div class="contact-name">${escapeHtml(m.name)}</div>
+      <div class="contact-sub">${escapeHtml(m.schedule || "")}${m.passcode ? ` · Passcode: ${escapeHtml(m.passcode)}` : ""}</div>
+    </div>
+    <div class="contact-actions">
+      <a class="icon-link" href="${escapeHtml(m.url)}" target="_blank" rel="noopener noreferrer" aria-label="Join ${escapeHtml(m.name)}">🎥</a>
+      ${deletable ? `<button type="button" class="icon-link delete" data-delete-meeting="${m.id}" aria-label="Delete">✕</button>` : ""}
+    </div>
+  </li>`;
+}
+
+function renderMeetings() {
+  els.meetingEmpty.hidden = data.meetings.length > 0;
+  els.meetingList.innerHTML = data.meetings.map((m) => meetingRowHtml(m, { deletable: true })).join("");
+  els.toolkitMeetings.innerHTML = data.meetings.length
+    ? data.meetings.slice(0, 2).map((m) => meetingRowHtml(m, { deletable: false })).join("")
+    : `<p class="empty-sub">No meetings saved yet. Add one from Support.</p>`;
+}
+
+function openAddMeetingSheet() {
+  openSheet(
+    `<h2>Add a meeting</h2>
+     <label class="field">
+       <span>Name</span>
+       <input type="text" id="meetingName" maxlength="60" placeholder="e.g. Women's 24/7 Meeting" required />
+     </label>
+     <label class="field">
+       <span>Schedule</span>
+       <input type="text" id="meetingSchedule" maxlength="60" placeholder="e.g. 24/7, or Tue 7pm" />
+     </label>
+     <label class="field">
+       <span>Link</span>
+       <input type="text" id="meetingUrl" placeholder="e.g. https://zoom.us/j/..." required />
+     </label>
+     <label class="field">
+       <span>Passcode (optional)</span>
+       <input type="text" id="meetingPasscode" maxlength="40" />
+     </label>
+     <div class="sheet-actions">
+       <button type="button" class="btn btn-secondary" id="meetingCancel">Cancel</button>
+       <button type="button" class="btn btn-primary" id="meetingSave">Save</button>
+     </div>`,
+    (sheet) => {
+      sheet.querySelector("#meetingCancel").addEventListener("click", closeSheet);
+      sheet.querySelector("#meetingSave").addEventListener("click", () => {
+        const name = sheet.querySelector("#meetingName").value.trim();
+        const schedule = sheet.querySelector("#meetingSchedule").value.trim();
+        const url = sheet.querySelector("#meetingUrl").value.trim();
+        const passcode = sheet.querySelector("#meetingPasscode").value.trim();
+        if (!name || !url) return;
+        data.meetings.push({
+          id: crypto.randomUUID ? crypto.randomUUID() : String(Date.now() + Math.random()),
+          name,
+          schedule,
+          url,
+          passcode,
+        });
+        save();
+        closeSheet();
+        renderMeetings();
+      });
+    }
+  );
+}
+
+function meetingLogRowHtml(l) {
+  const date = new Date(l.at);
+  const dateLabel = date.toLocaleDateString(undefined, { month: "short", day: "numeric" });
+  const timeLabel = date.toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" });
+  const hours = l.minutes / 60;
+  const durationLabel = hours >= 1 ? `${hours % 1 === 0 ? hours : hours.toFixed(1)}h` : `${l.minutes}m`;
+  return `<li class="contact-item">
+    <div class="contact-info">
+      <div class="contact-name">${escapeHtml(l.name)}</div>
+      <div class="contact-sub">${dateLabel} · ${timeLabel} · ${durationLabel}</div>
+    </div>
+    <div class="contact-actions">
+      <button type="button" class="icon-link delete" data-delete-meeting-log="${l.id}" aria-label="Delete">✕</button>
+    </div>
+  </li>`;
+}
+
+function renderMeetingLog() {
+  const logs = [...data.meetingLogs].sort((a, b) => b.at - a.at).slice(0, 14);
+  els.meetingLogEmpty.hidden = logs.length > 0;
+  els.meetingLogList.innerHTML = logs.map(meetingLogRowHtml).join("");
+}
+
+function openLogMeetingSheet() {
+  const hasMeetings = data.meetings.length > 0;
+  const options = data.meetings
+    .map((m) => `<option value="${escapeHtml(m.name)}">${escapeHtml(m.name)}</option>`)
+    .join("");
+  openSheet(
+    `<h2>Log a meeting</h2>
+     <label class="field">
+       <span>Meeting</span>
+       <select id="logMeetingSelect">
+         ${options}
+         <option value="__other__">Other...</option>
+       </select>
+     </label>
+     <label class="field" id="logMeetingNameField">
+       <span>Name</span>
+       <input type="text" id="logMeetingName" maxlength="60" placeholder="Meeting name" />
+     </label>
+     <label class="field">
+       <span>When</span>
+       <input type="datetime-local" id="logMeetingWhen" />
+     </label>
+     <label class="field">
+       <span>Duration (minutes)</span>
+       <input type="number" id="logMeetingMinutes" min="1" max="600" value="60" />
+     </label>
+     <div class="sheet-actions">
+       <button type="button" class="btn btn-secondary" id="logMeetingCancel">Cancel</button>
+       <button type="button" class="btn btn-primary" id="logMeetingSave">Save</button>
+     </div>`,
+    (sheet) => {
+      const select = sheet.querySelector("#logMeetingSelect");
+      const nameField = sheet.querySelector("#logMeetingNameField");
+      const nameInput = sheet.querySelector("#logMeetingName");
+      const syncNameField = () => {
+        nameField.hidden = select.value !== "__other__";
+      };
+      if (!hasMeetings) select.value = "__other__";
+      syncNameField();
+      select.addEventListener("change", syncNameField);
+
+      sheet.querySelector("#logMeetingWhen").value = toDatetimeLocalValue(new Date());
+      sheet.querySelector("#logMeetingCancel").addEventListener("click", closeSheet);
+      sheet.querySelector("#logMeetingSave").addEventListener("click", () => {
+        const name = select.value === "__other__" ? nameInput.value.trim() : select.value;
+        const whenVal = sheet.querySelector("#logMeetingWhen").value;
+        const minutes = Number(sheet.querySelector("#logMeetingMinutes").value);
+        if (!name || !whenVal || !minutes || minutes <= 0) return;
+        data.meetingLogs.push({
+          id: crypto.randomUUID ? crypto.randomUUID() : String(Date.now() + Math.random()),
+          name,
+          at: new Date(whenVal).getTime(),
+          minutes,
+        });
+        save();
+        closeSheet();
+        renderMeetingLog();
+        renderStats();
+      });
+    }
+  );
+}
+
 function handleDistraction() {
   const idea = DISTRACTIONS[Math.floor(Math.random() * DISTRACTIONS.length)];
   els.distractionText.textContent = idea;
@@ -558,6 +736,12 @@ function renderStats() {
   els.statAvgCraving.textContent = cravingValues.length
     ? (cravingValues.reduce((a, b) => a + b, 0) / cravingValues.length).toFixed(1)
     : "–";
+
+  const cutoff30 = Date.now() - 30 * 86400000;
+  const recentLogs = data.meetingLogs.filter((l) => l.at >= cutoff30);
+  els.statMeetings30.textContent = recentLogs.length;
+  const totalMinutes30 = recentLogs.reduce((sum, l) => sum + l.minutes, 0);
+  els.statMeetingHours30.textContent = (totalMinutes30 / 60).toFixed(1).replace(/\.0$/, "");
 }
 
 // ---------- Lock settings ----------
@@ -657,6 +841,8 @@ function renderAll() {
   renderCheckinForm();
   renderCheckinHistory();
   renderContacts();
+  renderMeetings();
+  renderMeetingLog();
   renderLockSettings();
   renderStats();
 }
@@ -674,10 +860,13 @@ function cacheEls() {
     "checkinHistory", "checkinEmpty",
     "breathingCircle", "breathingText", "breathingBtn",
     "distractionText", "distractionBtn",
-    "toolkitContacts", "toolkitHotlines",
+    "toolkitContacts", "toolkitHotlines", "toolkitMeetings",
     "hotlineList", "contactList", "contactEmpty", "addContactBtn",
+    "meetingList", "meetingEmpty", "addMeetingBtn",
+    "meetingLogList", "meetingLogEmpty", "logMeetingBtn",
     "lockSettingsArea", "resetAllBtn",
     "statCurrent", "statLongest", "statCheckins", "statAvgCraving",
+    "statMeetings30", "statMeetingHours30",
     "cravingChart", "moodChart",
     "lockScreen", "lockInput", "lockError", "lockSubmitBtn",
     "sheetBackdrop", "sheet", "toast",
@@ -718,6 +907,29 @@ function bindEvents() {
     renderContacts();
   });
 
+  els.addMeetingBtn.addEventListener("click", openAddMeetingSheet);
+  els.meetingList.addEventListener("click", (e) => {
+    const btn = e.target.closest("[data-delete-meeting]");
+    if (!btn) return;
+    const id = btn.getAttribute("data-delete-meeting");
+    if (!confirm("Delete this meeting?")) return;
+    data.meetings = data.meetings.filter((m) => m.id !== id);
+    save();
+    renderMeetings();
+  });
+
+  els.logMeetingBtn.addEventListener("click", openLogMeetingSheet);
+  els.meetingLogList.addEventListener("click", (e) => {
+    const btn = e.target.closest("[data-delete-meeting-log]");
+    if (!btn) return;
+    const id = btn.getAttribute("data-delete-meeting-log");
+    if (!confirm("Delete this meeting log entry?")) return;
+    data.meetingLogs = data.meetingLogs.filter((l) => l.id !== id);
+    save();
+    renderMeetingLog();
+    renderStats();
+  });
+
   els.resetAllBtn.addEventListener("click", resetAll);
 
   els.sheetBackdrop.addEventListener("click", (e) => {
@@ -750,6 +962,7 @@ async function attemptUnlock() {
 }
 
 function boot2() {
+  ensureMeetingsSeeded();
   renderAll();
   clearInterval(clockTimer);
   clockTimer = setInterval(tickClock, 1000);
