@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Anchor — Sobriety Companion</title>
+<meta name="theme-color" content="#0d9488" />
+<meta name="description" content="A private, offline-first companion for tracking sobriety, cravings, and check-ins." />
+<link rel="manifest" href="manifest.json" />
+<link rel="icon" href="icons/icon-192.png" />
+<link rel="apple-touch-icon" href="icons/icon-192.png" />
+<link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="app" id="app" hidden>
+    <header class="topbar">
+      <div class="title">Anchor</div>
+      <div class="streak-pill" id="streakPill">—</div>
+    </header>
+
+    <main>
+      <!-- Today -->
+      <section class="tab-panel" id="tab-today">
+        <div class="card start-card" id="startCard" hidden>
+          <h2>When did your sobriety begin?</h2>
+          <p class="muted">You can always adjust this later.</p>
+          <label class="field">
+            <span>Start date &amp; time</span>
+            <input type="datetime-local" id="startInput" />
+          </label>
+          <button type="button" class="btn btn-primary" id="startBtn">Start my clock</button>
+        </div>
+
+        <div class="card clock-card" id="clockCard" hidden>
+          <div class="clock-days" id="clockDays">0</div>
+          <div class="clock-days-label" id="clockDaysLabel">days</div>
+          <div class="clock-time" id="clockTime">00:00:00</div>
+          <div class="clock-since" id="clockSince"></div>
+        </div>
+
+        <div class="card milestone-card" id="milestoneCard" hidden>
+          <div class="milestone-row">
+            <span id="milestoneLabel">Next milestone</span>
+            <span id="milestoneRemaining" class="muted"></span>
+          </div>
+          <div class="progress-track">
+            <div class="progress-fill" id="milestoneFill"></div>
+          </div>
+        </div>
+
+        <button type="button" class="btn btn-craving" id="cravingBtn" hidden>
+          😣 Having a craving?
+        </button>
+
+        <button type="button" class="link-btn" id="logSlipBtn" hidden>Had a slip? Log it — no judgment.</button>
+      </section>
+
+      <!-- Check-in -->
+      <section class="tab-panel" id="tab-checkin" hidden>
+        <form class="card" id="checkinForm">
+          <h2>Today's check-in</h2>
+          <div class="field">
+            <span>Mood</span>
+            <div class="mood-grid" id="moodGrid"></div>
+          </div>
+          <div class="field">
+            <span>Craving intensity: <b id="cravingValue">0</b>/10</span>
+            <input type="range" id="cravingInput" min="0" max="10" step="1" value="0" />
+          </div>
+          <label class="field">
+            <span>Note (optional)</span>
+            <textarea id="checkinNote" rows="3" maxlength="500" placeholder="Anything on your mind..."></textarea>
+          </label>
+          <button type="submit" class="btn btn-primary">Save check-in</button>
+        </form>
+
+        <div class="card">
+          <h2>Recent check-ins</h2>
+          <ul class="checkin-history" id="checkinHistory"></ul>
+          <p class="empty-sub" id="checkinEmpty" hidden>No check-ins yet.</p>
+        </div>
+      </section>
+
+      <!-- Toolkit -->
+      <section class="tab-panel" id="tab-toolkit" hidden>
+        <div class="card breathing-card">
+          <h2>Box breathing</h2>
+          <p class="muted">A slow, steady breath can take the edge off a craving in a few minutes.</p>
+          <div class="breathing-circle" id="breathingCircle">
+            <span id="breathingText">Ready</span>
+          </div>
+          <button type="button" class="btn btn-secondary" id="breathingBtn">Start</button>
+        </div>
+
+        <div class="card">
+          <h2>Ride the wave</h2>
+          <p class="muted">Cravings are intense, but they're temporary — most peak and fade within 15–30 minutes, whether or not you act on them. You don't have to fight it, just outlast it.</p>
+        </div>
+
+        <div class="card">
+          <h2>Need a distraction?</h2>
+          <p id="distractionText" class="distraction-text">Tap the button for an idea.</p>
+          <button type="button" class="btn btn-secondary" id="distractionBtn">Give me an idea</button>
+        </div>
+
+        <div class="card">
+          <h2>Reach out now</h2>
+          <ul class="contact-list" id="toolkitContacts"></ul>
+          <ul class="contact-list" id="toolkitHotlines"></ul>
+        </div>
+      </section>
+
+      <!-- Support -->
+      <section class="tab-panel" id="tab-support" hidden>
+        <div class="card">
+          <h2>Crisis &amp; support lines</h2>
+          <p class="muted">Always available, free, and confidential.</p>
+          <ul class="contact-list" id="hotlineList"></ul>
+        </div>
+
+        <div class="card">
+          <h2>Your people</h2>
+          <ul class="contact-list" id="contactList"></ul>
+          <p class="empty-sub" id="contactEmpty" hidden>No contacts saved yet.</p>
+          <button type="button" class="btn btn-secondary" id="addContactBtn">+ Add a contact</button>
+        </div>
+
+        <div class="card">
+          <h2>Privacy</h2>
+          <p class="muted">Everything is stored only on this device. Nothing is uploaded anywhere.</p>
+          <div id="lockSettingsArea"></div>
+        </div>
+
+        <div class="card danger-card">
+          <h2>Reset</h2>
+          <p class="muted">Erase all local data on this device. This cannot be undone.</p>
+          <button type="button" class="btn btn-danger" id="resetAllBtn">Erase all data</button>
+        </div>
+      </section>
+
+      <!-- Stats -->
+      <section class="tab-panel" id="tab-stats" hidden>
+        <div class="stat-grid">
+          <div class="card stat-tile">
+            <div class="stat-value" id="statCurrent">0</div>
+            <div class="stat-label">Current streak</div>
+          </div>
+          <div class="card stat-tile">
+            <div class="stat-value" id="statLongest">0</div>
+            <div class="stat-label">Longest streak</div>
+          </div>
+          <div class="card stat-tile">
+            <div class="stat-value" id="statCheckins">0</div>
+            <div class="stat-label">Check-ins logged</div>
+          </div>
+          <div class="card stat-tile">
+            <div class="stat-value" id="statAvgCraving">–</div>
+            <div class="stat-label">Avg craving (14d)</div>
+          </div>
+        </div>
+
+        <div class="card">
+          <h2>Craving intensity — last 14 days</h2>
+          <div class="bar-chart" id="cravingChart"></div>
+        </div>
+
+        <div class="card">
+          <h2>Mood — last 14 days</h2>
+          <div class="bar-chart" id="moodChart"></div>
+        </div>
+      </section>
+    </main>
+
+    <nav class="tabbar">
+      <button type="button" class="tab-btn active" data-tab="today"><span class="tab-icon">🏠</span><span>Today</span></button>
+      <button type="button" class="tab-btn" data-tab="checkin"><span class="tab-icon">📝</span><span>Check-in</span></button>
+      <button type="button" class="tab-btn" data-tab="toolkit"><span class="tab-icon">🧰</span><span>Toolkit</span></button>
+      <button type="button" class="tab-btn" data-tab="support"><span class="tab-icon">📞</span><span>Support</span></button>
+      <button type="button" class="tab-btn" data-tab="stats"><span class="tab-icon">📊</span><span>Stats</span></button>
+    </nav>
+  </div>
+
+  <!-- Lock screen -->
+  <div class="lock-screen" id="lockScreen" hidden>
+    <div class="lock-box">
+      <div class="lock-icon">🔒</div>
+      <h2>Anchor is locked</h2>
+      <p class="muted">Enter your passcode to continue.</p>
+      <input type="password" inputmode="numeric" id="lockInput" placeholder="Passcode" autocomplete="off" />
+      <p class="error-text" id="lockError" hidden>Incorrect passcode.</p>
+      <button type="button" class="btn btn-primary" id="lockSubmitBtn">Unlock</button>
+    </div>
+  </div>
+
+  <!-- Generic bottom sheet (slip log, add contact, set passcode) -->
+  <div class="sheet-backdrop" id="sheetBackdrop" hidden>
+    <div class="sheet" id="sheet"></div>
+  </div>
+
+  <!-- Milestone celebration toast -->
+  <div class="toast" id="toast" hidden></div>
+
+  <script src="app.js"></script>
+</body>
+</html>
