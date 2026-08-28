@@ -48,6 +48,16 @@ const DISTRACTIONS = [
   "Look at old photos of people who matter to you.",
 ];
 
+const MEETING_SEED = [
+  {
+    id: "seed-womens-247",
+    name: "Women's 24/7 Meeting",
+    schedule: "24/7 — always available",
+    url: "https://us02web.zoom.us/j/92894148568",
+    passcode: "Billw",
+  },
+];
+
 const DEFAULT_DATA = () => ({
   startDate: null,
   pastRuns: [],
@@ -55,7 +65,15 @@ const DEFAULT_DATA = () => ({
   celebrated: [],
   checkins: {},
   contacts: [],
+  meetings: MEETING_SEED.map((m) => ({ ...m })),
 });
+
+function ensureMeetingsSeeded() {
+  if (!Array.isArray(data.meetings)) {
+    data.meetings = MEETING_SEED.map((m) => ({ ...m }));
+    save();
+  }
+}
 
 let meta = loadMeta();
 let data = DEFAULT_DATA();
@@ -514,6 +532,73 @@ function openAddContactSheet() {
   );
 }
 
+function meetingRowHtml(m, { deletable }) {
+  return `<li class="contact-item">
+    <div class="contact-info">
+      <div class="contact-name">${escapeHtml(m.name)}</div>
+      <div class="contact-sub">${escapeHtml(m.schedule || "")}${m.passcode ? ` · Passcode: ${escapeHtml(m.passcode)}` : ""}</div>
+    </div>
+    <div class="contact-actions">
+      <a class="icon-link" href="${escapeHtml(m.url)}" target="_blank" rel="noopener noreferrer" aria-label="Join ${escapeHtml(m.name)}">🎥</a>
+      ${deletable ? `<button type="button" class="icon-link delete" data-delete-meeting="${m.id}" aria-label="Delete">✕</button>` : ""}
+    </div>
+  </li>`;
+}
+
+function renderMeetings() {
+  els.meetingEmpty.hidden = data.meetings.length > 0;
+  els.meetingList.innerHTML = data.meetings.map((m) => meetingRowHtml(m, { deletable: true })).join("");
+  els.toolkitMeetings.innerHTML = data.meetings.length
+    ? data.meetings.slice(0, 2).map((m) => meetingRowHtml(m, { deletable: false })).join("")
+    : `<p class="empty-sub">No meetings saved yet. Add one from Support.</p>`;
+}
+
+function openAddMeetingSheet() {
+  openSheet(
+    `<h2>Add a meeting</h2>
+     <label class="field">
+       <span>Name</span>
+       <input type="text" id="meetingName" maxlength="60" placeholder="e.g. Women's 24/7 Meeting" required />
+     </label>
+     <label class="field">
+       <span>Schedule</span>
+       <input type="text" id="meetingSchedule" maxlength="60" placeholder="e.g. 24/7, or Tue 7pm" />
+     </label>
+     <label class="field">
+       <span>Link</span>
+       <input type="text" id="meetingUrl" placeholder="e.g. https://zoom.us/j/..." required />
+     </label>
+     <label class="field">
+       <span>Passcode (optional)</span>
+       <input type="text" id="meetingPasscode" maxlength="40" />
+     </label>
+     <div class="sheet-actions">
+       <button type="button" class="btn btn-secondary" id="meetingCancel">Cancel</button>
+       <button type="button" class="btn btn-primary" id="meetingSave">Save</button>
+     </div>`,
+    (sheet) => {
+      sheet.querySelector("#meetingCancel").addEventListener("click", closeSheet);
+      sheet.querySelector("#meetingSave").addEventListener("click", () => {
+        const name = sheet.querySelector("#meetingName").value.trim();
+        const schedule = sheet.querySelector("#meetingSchedule").value.trim();
+        const url = sheet.querySelector("#meetingUrl").value.trim();
+        const passcode = sheet.querySelector("#meetingPasscode").value.trim();
+        if (!name || !url) return;
+        data.meetings.push({
+          id: crypto.randomUUID ? crypto.randomUUID() : String(Date.now() + Math.random()),
+          name,
+          schedule,
+          url,
+          passcode,
+        });
+        save();
+        closeSheet();
+        renderMeetings();
+      });
+    }
+  );
+}
+
 function handleDistraction() {
   const idea = DISTRACTIONS[Math.floor(Math.random() * DISTRACTIONS.length)];
   els.distractionText.textContent = idea;
@@ -657,6 +742,7 @@ function renderAll() {
   renderCheckinForm();
   renderCheckinHistory();
   renderContacts();
+  renderMeetings();
   renderLockSettings();
   renderStats();
 }
@@ -674,8 +760,9 @@ function cacheEls() {
     "checkinHistory", "checkinEmpty",
     "breathingCircle", "breathingText", "breathingBtn",
     "distractionText", "distractionBtn",
-    "toolkitContacts", "toolkitHotlines",
+    "toolkitContacts", "toolkitHotlines", "toolkitMeetings",
     "hotlineList", "contactList", "contactEmpty", "addContactBtn",
+    "meetingList", "meetingEmpty", "addMeetingBtn",
     "lockSettingsArea", "resetAllBtn",
     "statCurrent", "statLongest", "statCheckins", "statAvgCraving",
     "cravingChart", "moodChart",
@@ -718,6 +805,17 @@ function bindEvents() {
     renderContacts();
   });
 
+  els.addMeetingBtn.addEventListener("click", openAddMeetingSheet);
+  els.meetingList.addEventListener("click", (e) => {
+    const btn = e.target.closest("[data-delete-meeting]");
+    if (!btn) return;
+    const id = btn.getAttribute("data-delete-meeting");
+    if (!confirm("Delete this meeting?")) return;
+    data.meetings = data.meetings.filter((m) => m.id !== id);
+    save();
+    renderMeetings();
+  });
+
   els.resetAllBtn.addEventListener("click", resetAll);
 
   els.sheetBackdrop.addEventListener("click", (e) => {
@@ -750,6 +848,7 @@ async function attemptUnlock() {
 }
 
 function boot2() {
+  ensureMeetingsSeeded();
   renderAll();
   clearInterval(clockTimer);
   clockTimer = setInterval(tickClock, 1000);
