@@ -139,6 +139,14 @@
         </div>
 
         <div class="card">
+          <h2>Meeting log</h2>
+          <p class="muted">Track when you go and how long you stay.</p>
+          <ul class="checkin-history" id="meetingLogList"></ul>
+          <p class="empty-sub" id="meetingLogEmpty" hidden>No meetings logged yet.</p>
+          <button type="button" class="btn btn-secondary" id="logMeetingBtn">+ Log a meeting</button>
+        </div>
+
+        <div class="card">
           <h2>Privacy</h2>
           <p class="muted">Everything is stored only on this device. Nothing is uploaded anywhere.</p>
           <div id="lockSettingsArea"></div>
@@ -169,6 +177,14 @@
           <div class="card stat-tile">
             <div class="stat-value" id="statAvgCraving">–</div>
             <div class="stat-label">Avg craving (14d)</div>
+          </div>
+          <div class="card stat-tile">
+            <div class="stat-value" id="statMeetings30">0</div>
+            <div class="stat-label">Meetings (30d)</div>
+          </div>
+          <div class="card stat-tile">
+            <div class="stat-value" id="statMeetingHours30">0</div>
+            <div class="stat-label">Meeting hours (30d)</div>
           </div>
         </div>
 

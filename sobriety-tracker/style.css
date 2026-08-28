@@ -99,6 +99,8 @@ html, body {
 .field input[type="tel"],
 .field input[type="password"],
 .field input[type="datetime-local"],
+.field input[type="number"],
+.field select,
 .field textarea {
   font-size: 16px;
   padding: 12px 14px;
