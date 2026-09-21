@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Compass — Daily Planner</title>
+<meta name="theme-color" content="#0d9488" />
+<meta name="description" content="A private, offline-first hub for your tasks, mood, and goals." />
+<link rel="manifest" href="manifest.json" />
+<link rel="icon" href="icons/icon-192.png" />
+<link rel="apple-touch-icon" href="icons/icon-192.png" />
+<link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="app">
+    <header class="topbar">
+      <div class="title" id="pageTitle">Today</div>
+      <div class="date-chip" id="dateChip"></div>
+    </header>
+
+    <main>
+      <!-- TODAY -->
+      <section class="tab-panel" id="tab-today">
+        <div class="stat-row" id="statRow"></div>
+
+        <div class="mood-quicklog" id="moodQuicklog" hidden>
+          <div class="section-label">How are you feeling today?</div>
+          <div class="mood-grid" id="moodQuickGrid"></div>
+        </div>
+
+        <div class="section-label">Today's tasks</div>
+        <ul class="task-list" id="todayTaskList"></ul>
+        <div class="empty-state" id="todayEmptyState" hidden>
+          <p>Nothing due today 🎉</p>
+        </div>
+      </section>
+
+      <!-- TASKS -->
+      <section class="tab-panel" id="tab-tasks" hidden>
+        <div class="section-label" id="groupLabel-today">Today</div>
+        <ul class="task-list" id="taskListToday"></ul>
+
+        <div class="section-label" id="groupLabel-upcoming" hidden>Upcoming</div>
+        <ul class="task-list" id="taskListUpcoming"></ul>
+
+        <div class="section-label" id="groupLabel-anytime" hidden>Anytime</div>
+        <ul class="task-list" id="taskListAnytime"></ul>
+
+        <button type="button" class="text-toggle" id="toggleCompleted" hidden>Show completed</button>
+        <ul class="task-list" id="taskListCompleted" hidden></ul>
+
+        <div class="empty-state" id="tasksEmptyState" hidden>
+          <p>No tasks yet.</p>
+          <p class="empty-sub">Tap + to add one.</p>
+        </div>
+      </section>
+
+      <!-- JOURNAL -->
+      <section class="tab-panel" id="tab-journal" hidden>
+        <ul class="journal-list" id="journalList"></ul>
+        <div class="empty-state" id="journalEmptyState" hidden>
+          <p>No entries yet.</p>
+          <p class="empty-sub">Tap + to write about today.</p>
+        </div>
+      </section>
+
+      <!-- GOALS -->
+      <section class="tab-panel" id="tab-goals" hidden>
+        <ul class="goal-list" id="goalList"></ul>
+        <div class="empty-state" id="goalsEmptyState" hidden>
+          <p>No goals yet.</p>
+          <p class="empty-sub">Tap + to set one.</p>
+        </div>
+      </section>
+    </main>
+
+    <button class="fab" id="addBtn" aria-label="Add">+</button>
+
+    <nav class="tabbar">
+      <button type="button" class="tab-btn active" data-tab="today">
+        <span class="tab-icon">🧭</span><span>Today</span>
+      </button>
+      <button type="button" class="tab-btn" data-tab="tasks">
+        <span class="tab-icon">✅</span><span>Tasks</span>
+      </button>
+      <button type="button" class="tab-btn" data-tab="journal">
+        <span class="tab-icon">📔</span><span>Journal</span>
+      </button>
+      <button type="button" class="tab-btn" data-tab="goals">
+        <span class="tab-icon">🎯</span><span>Goals</span>
+      </button>
+    </nav>
+  </div>
+
+  <!-- ADD TASK SHEET -->
+  <div class="sheet-backdrop" id="taskSheetBackdrop" hidden>
+    <form class="sheet" id="taskForm">
+      <div class="sheet-handle"></div>
+      <h2 id="taskSheetTitle">Add task</h2>
+
+      <label class="field">
+        <span>Title</span>
+        <input type="text" id="taskTitleInput" placeholder="e.g. Call the dentist" maxlength="80" required />
+      </label>
+
+      <label class="field">
+        <span>Due date (optional)</span>
+        <input type="date" id="taskDueInput" />
+      </label>
+
+      <div class="field">
+        <span>Repeats</span>
+        <div class="chip-row" id="taskRecurringRow">
+          <button type="button" class="chip selected" data-recurring="none">Once</button>
+          <button type="button" class="chip" data-recurring="daily">Daily</button>
+          <button type="button" class="chip" data-recurring="weekly">Weekly</button>
+        </div>
+      </div>
+
+      <div class="field">
+        <span>Priority</span>
+        <div class="chip-row" id="taskPriorityRow">
+          <button type="button" class="chip" data-priority="low">Low</button>
+          <button type="button" class="chip selected" data-priority="medium">Medium</button>
+          <button type="button" class="chip" data-priority="high">High</button>
+        </div>
+      </div>
+
+      <div class="sheet-actions">
+        <button type="button" class="btn btn-secondary" data-cancel>Cancel</button>
+        <button type="submit" class="btn btn-primary">Save</button>
+      </div>
+    </form>
+  </div>
+
+  <!-- JOURNAL SHEET -->
+  <div class="sheet-backdrop" id="journalSheetBackdrop" hidden>
+    <form class="sheet" id="journalForm">
+      <div class="sheet-handle"></div>
+      <h2 id="journalSheetTitle">Today's entry</h2>
+
+      <div class="field">
+        <span>Mood</span>
+        <div class="mood-grid" id="journalMoodGrid"></div>
+      </div>
+
+      <label class="field">
+        <span>Notes (optional)</span>
+        <textarea id="journalNoteInput" rows="4" maxlength="2000" placeholder="What's on your mind?"></textarea>
+      </label>
+
+      <div class="sheet-actions">
+        <button type="button" class="btn btn-secondary" data-cancel>Cancel</button>
+        <button type="submit" class="btn btn-primary">Save</button>
+      </div>
+    </form>
+  </div>
+
+  <!-- ADD GOAL SHEET -->
+  <div class="sheet-backdrop" id="goalSheetBackdrop" hidden>
+    <form class="sheet" id="goalForm">
+      <div class="sheet-handle"></div>
+      <h2>Add goal</h2>
+
+      <label class="field">
+        <span>Title</span>
+        <input type="text" id="goalTitleInput" placeholder="e.g. Run a 5k" maxlength="60" required />
+      </label>
+
+      <div class="field">
+        <span>Icon</span>
+        <div class="emoji-grid" id="goalEmojiGrid"></div>
+      </div>
+
+      <label class="field">
+        <span>Steps (optional, one per line)</span>
+        <textarea id="goalStepsInput" rows="4" maxlength="1000" placeholder="Buy running shoes&#10;Run 1 mile without stopping&#10;Sign up for a race"></textarea>
+      </label>
+
+      <div class="sheet-actions">
+        <button type="button" class="btn btn-secondary" data-cancel>Cancel</button>
+        <button type="submit" class="btn btn-primary">Save</button>
+      </div>
+    </form>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
